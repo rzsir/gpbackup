@@ -106,7 +106,18 @@ func WriteBackupHistory(historyFilePath string, currentBackupConfig *BackupConfi
 		gplog.Verbose("No existing backups found. Creating new backup history file.")
 	}
 	history.AddBackupConfig(currentBackupConfig)
-	history.writeToFileAndMakeReadOnly(historyFilePath)
+	err := history.writeToFileAndMakeReadOnly(historyFilePath)
+	gplog.FatalOnError(err)
+}
+
+func (history *History) RewriteHistoryFile(historyFilePath string) error {
+	lock := lockHistoryFile()
+	defer func() {
+		_ = lock.Unlock()
+	}()
+
+	err := history.writeToFileAndMakeReadOnly(historyFilePath)
+	return err
 }
 
 func lockHistoryFile() lockfile.Lockfile {
@@ -120,18 +131,25 @@ func lockHistoryFile() lockfile.Lockfile {
 	return lock
 }
 
-func (history *History) writeToFileAndMakeReadOnly(filename string) {
+func (history *History) writeToFileAndMakeReadOnly(filename string) error {
 	_, err := operating.System.Stat(filename)
 	fileExists := err == nil
 	if fileExists {
-		err = operating.System.Chmod(filename, 0644)
-		gplog.FatalOnError(err)
+		return operating.System.Chmod(filename, 0644)
 	}
 	historyFile := iohelper.MustOpenFileForWriting(filename)
 	historyFileContents, err := yaml.Marshal(history)
-	gplog.FatalOnError(err)
+	if err != nil {
+		return err
+	}
 	_, err = historyFile.Write(historyFileContents)
-	gplog.FatalOnError(err)
+	if err != nil {
+		return err
+	}
 	err = operating.System.Chmod(filename, 0444)
-	gplog.FatalOnError(err)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
