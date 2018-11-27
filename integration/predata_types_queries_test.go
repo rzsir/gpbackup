@@ -257,11 +257,10 @@ var _ = Describe("backup integration tests", func() {
 
 			Expect(len(results)).To(Equal(1))
 
-			expectedRangeType := backup.Type{
+			expectedRangeType := backup.RangeType{
 				Oid:            0,
 				Schema:         "public",
 				Name:           "textrange",
-				Type:           "r",
 				SubType:        "text",
 				Collation:      "public.some_coll",
 				SubTypeOpClass: "pg_catalog.text_ops",
@@ -282,11 +281,10 @@ var _ = Describe("backup integration tests", func() {
 
 			Expect(len(results)).To(Equal(1))
 
-			expectedRangeType := backup.Type{
+			expectedRangeType := backup.RangeType{
 				Oid:            0,
 				Schema:         "testschema",
 				Name:           "timerange",
-				Type:           "r",
 				SubType:        "time without time zone",
 				SubTypeOpClass: "pg_catalog.time_ops",
 				SubTypeDiff:    "testschema.time_subtype_diff",

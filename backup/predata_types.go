@@ -20,10 +20,10 @@ import (
  * Because only base types are dependent on functions, we only need to print
  * shell type statements for base types.
  */
-func PrintCreateShellTypeStatements(metadataFile *utils.FileWithByteCount, toc *utils.TOC, types []Type) {
+func PrintCreateShellTypeStatements(metadataFile *utils.FileWithByteCount, toc *utils.TOC, types []Type, rangeTypes []RangeType) {
 	metadataFile.MustPrintf("\n\n")
 	for _, typ := range types {
-		if typ.Type == "b" || typ.Type == "p" || typ.Type == "r" {
+		if typ.Type == "b" || typ.Type == "p" {
 			start := metadataFile.ByteCount
 			typeFQN := utils.MakeFQN(typ.Schema, typ.Name)
 			metadataFile.MustPrintf("CREATE TYPE %s;\n", typeFQN)
@@ -31,6 +31,13 @@ func PrintCreateShellTypeStatements(metadataFile *utils.FileWithByteCount, toc *
 			section, entry := typ.GetMetadataEntry()
 			toc.AddMetadataEntry(section, entry, start, metadataFile.ByteCount)
 		}
+	}
+
+	for _, rangeTyp := range rangeTypes {
+		typeFQN := utils.MakeFQN(rangeTyp.Schema, rangeTyp.Name)
+		metadataFile.MustPrintf("CREATE TYPE %s;\n", typeFQN)
+		toc.AddMetadataEntry(rangeTyp, start, metadataFile.ByteCount)
+		start = metadataFile.ByteCount
 	}
 }
 
@@ -173,7 +180,7 @@ func PrintCreateEnumTypeStatements(metadataFile *utils.FileWithByteCount, toc *u
 	}
 }
 
-func PrintCreateRangeTypeStatement(metadataFile *utils.FileWithByteCount, toc *utils.TOC, rangeType Type, typeMetadata ObjectMetadata) {
+func PrintCreateRangeTypeStatement(metadataFile *utils.FileWithByteCount, toc *utils.TOC, rangeType RangeType, typeMetadata ObjectMetadata) {
 	start := metadataFile.ByteCount
 	metadataFile.MustPrintf("\n\nCREATE TYPE %s AS RANGE (\n\tSUBTYPE = %s", rangeType.FQN(), rangeType.SubType)
 

@@ -115,10 +115,6 @@ type Type struct {
 	StorageOptions  string
 	Collatable      bool
 	Collation       string
-	SubType         string
-	SubTypeOpClass  string
-	Canonical       string
-	SubTypeDiff     string
 }
 
 func (t Type) GetMetadataEntry() (string, utils.MetadataEntry) {
@@ -376,13 +372,43 @@ ORDER BY n.nspname, t.typname;`, enumSortClause, SchemaFilterClause("n"), Extens
 	return results
 }
 
-func GetRangeTypes(connectionPool *dbconn.DBConn) []Type {
+type RangeType struct {
+	Oid            uint32
+	Schema         string
+	Name           string
+	SubType        string
+	Collation      string
+	SubTypeOpClass string
+	Canonical      string
+	SubTypeDiff    string
+}
+
+func (t RangeType) GetMetadataEntry(start uint64, end uint64) (string, utils.MetadataEntry) {
+	return "predata",
+		utils.MetadataEntry{
+			Schema:          t.Schema,
+			Name:            t.Name,
+			ObjectType:      "TYPE",
+			ReferenceObject: "",
+			StartByte:       start,
+			EndByte:         end,
+		}
+}
+
+func (t RangeType) GetUniqueID() UniqueID {
+	return UniqueID{ClassID: PG_TYPE_OID, Oid: t.Oid}
+}
+
+func (t RangeType) FQN() string {
+	return utils.MakeFQN(t.Schema, t.Name)
+}
+
+func GetRangeTypes(connectionPool *dbconn.DBConn) []RangeType {
 	query := fmt.Sprintf(`
 SELECT
 	t.oid,
 	quote_ident(n.nspname) AS schema,
 	quote_ident(t.typname) AS name,
-	t.typtype,
 	format_type(st.oid, st.typtypmod) AS subtype,
 	CASE
 		WHEN c.collname IS NULL THEN ''
@@ -412,7 +438,7 @@ WHERE %s
 AND t.typtype = 'r'
 AND %s;`, SchemaFilterClause("n"), ExtensionFilterClause("t"))
 
-	results := make([]Type, 0)
+	results := make([]RangeType, 0)
 	err := connectionPool.Select(&results, query)
 	gplog.FatalOnError(err)
 	return results

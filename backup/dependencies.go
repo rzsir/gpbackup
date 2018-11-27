@@ -268,9 +268,9 @@ func PrintDependentObjectStatements(metadataFile *utils.FileWithByteCount, toc *
 			case "d":
 				domainName := utils.MakeFQN(obj.Schema, obj.Name)
 				PrintCreateDomainStatement(metadataFile, toc, obj, objMetadata, conMap[domainName])
-			case "r":
-				PrintCreateRangeTypeStatement(metadataFile, toc, obj, objMetadata)
 			}
+		case RangeType:
+			PrintCreateRangeTypeStatement(metadataFile, toc, obj, objMetadata)
 		case Function:
 			PrintCreateFunctionStatement(metadataFile, toc, obj, objMetadata)
 		case Table:

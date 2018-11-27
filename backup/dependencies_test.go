@@ -140,6 +140,7 @@ var _ = Describe("backup/dependencies tests", func() {
 					TableDefinition: backup.TableDefinition{DistPolicy: "DISTRIBUTED RANDOMLY", ColumnDefs: []backup.ColumnDefinition{}},
 				},
 				backup.ExternalProtocol{Oid: 6, Name: "ext_protocol", Trusted: true, ReadFunction: 2, WriteFunction: 1, Validator: 0},
+				backup.RangeType{Oid: 7, Schema: "public", Name: "rangetype1"},
 			}
 			metadataMap = backup.MetadataMap{
 				backup.UniqueID{ClassID: backup.PG_PROC_OID, Oid: 1}:        backup.ObjectMetadata{Comment: "function"},
@@ -148,6 +149,7 @@ var _ = Describe("backup/dependencies tests", func() {
 				backup.UniqueID{ClassID: backup.PG_TYPE_OID, Oid: 4}:        backup.ObjectMetadata{Comment: "domain"},
 				backup.UniqueID{ClassID: backup.PG_CLASS_OID, Oid: 5}:       backup.ObjectMetadata{Comment: "relation"},
 				backup.UniqueID{ClassID: backup.PG_EXTPROTOCOL_OID, Oid: 6}: backup.ObjectMetadata{Comment: "protocol"},
+				backup.UniqueID{ClassID: backup.PG_TYPE_OID, Oid: 7}:        backup.ObjectMetadata{Comment: "range type"},
 			}
 		})
 		It("prints create statements for dependent types, functions, protocols, and tables (domain has a constraint)", func() {

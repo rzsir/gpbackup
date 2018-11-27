@@ -53,7 +53,7 @@ var _ = Describe("backup integration create statement tests", func() {
 		})
 
 		It("creates shell types for base and shell types only", func() {
-			backup.PrintCreateShellTypeStatements(backupfile, toc, types)
+			backup.PrintCreateShellTypeStatements(backupfile, toc, types, []backup.RangeType{})
 
 			testhelper.AssertQueryRuns(connectionPool, buffer.String())
 			defer testhelper.AssertQueryRuns(connectionPool, "DROP TYPE public.shell_type")
@@ -164,11 +164,10 @@ var _ = Describe("backup integration create statement tests", func() {
 		typeMetadata := backup.ObjectMetadata{}
 		It("creates a range type with a collation and opclass", func() {
 			testutils.SkipIfBefore6(connectionPool)
-			rangeType := backup.Type{
+			rangeType := backup.RangeType{
 				Oid:            0,
 				Schema:         "public",
 				Name:           "textrange",
-				Type:           "r",
 				SubType:        "text",
 				Collation:      "public.some_coll",
 				SubTypeOpClass: "pg_catalog.text_ops",
@@ -189,11 +188,10 @@ var _ = Describe("backup integration create statement tests", func() {
 		})
 		It("creates a range type in a specific schema with a subtype diff function", func() {
 			testutils.SkipIfBefore6(connectionPool)
-			rangeType := backup.Type{
+			rangeType := backup.RangeType{
 				Oid:            0,
 				Schema:         "testschema",
 				Name:           "timerange",
-				Type:           "r",
 				SubType:        "time without time zone",
 				SubTypeOpClass: "pg_catalog.time_ops",
 				SubTypeDiff:    "testschema.time_subtype_diff",

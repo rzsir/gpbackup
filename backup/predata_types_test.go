@@ -189,11 +189,17 @@ ALTER TYPE public.base_type
 		compOne := backup.Type{Oid: 1, Schema: "public", Name: "composite_type1", Type: "c", Category: "U"}
 		compTwo := backup.Type{Oid: 1, Schema: "public", Name: "composite_type2", Type: "c", Category: "U"}
 		enumOne := backup.Type{Oid: 1, Schema: "public", Name: "enum_type", Type: "e", EnumLabels: "'bar',\n\t'baz',\n\t'foo'", Category: "U"}
-		It("prints shell type for only a base type", func() {
-			backup.PrintCreateShellTypeStatements(backupfile, toc, []backup.Type{baseOne, baseTwo, compOne, compTwo, enumOne})
+		rangeOne := backup.RangeType{Oid: 1, Schema: "public", Name: "range_type1"}
+		It("prints shell type for a base type", func() {
+			backup.PrintCreateShellTypeStatements(backupfile, toc, []backup.Type{baseOne, baseTwo, compOne, compTwo, enumOne}, []backup.RangeType{})
 			testutils.ExpectEntry(toc.PredataEntries, 0, "public", "", "base_type1", "TYPE")
 			testutils.ExpectEntry(toc.PredataEntries, 1, "public", "", "base_type2", "TYPE")
 			testutils.AssertBufferContents(toc.PredataEntries, buffer, "CREATE TYPE public.base_type1;", "CREATE TYPE public.base_type2;")
+		})
+		It("prints shell type for a range type", func() {
+			backup.PrintCreateShellTypeStatements(backupfile, toc, []backup.Type{}, []backup.RangeType{rangeOne})
+			testutils.ExpectEntry(toc.PredataEntries, 0, "public", "", "range_type1", "TYPE")
+			testutils.AssertBufferContents(toc.PredataEntries, buffer, "CREATE TYPE public.range_type1;")
 		})
 	})
 	Describe("PrintCreateDomainStatement", func() {
@@ -228,8 +234,12 @@ ALTER TYPE public.base_type
 		})
 	})
 	Describe("PrintCreateRangeTypeStatement", func() {
-		basicRangeType := backup.Type{Name: "rangetype", Schema: "public", SubType: "test_subtype_schema.test_subtype"}
-		complexRangeType := backup.Type{
+		basicRangeType := backup.RangeType{
+			Name:    "rangetype",
+			Schema:  "public",
+			SubType: "test_subtype_schema.test_subtype",
+		}
+		complexRangeType := backup.RangeType{
 			Name: "rangetype", Schema: "public",
 			SubType:        "test_subtype_schema.test_subtype",
 			SubTypeOpClass: "opclass_schema.test_opclass",

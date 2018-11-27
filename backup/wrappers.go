@@ -187,7 +187,8 @@ func RetrieveFunctions(sortables *[]Sortable, metadataMap MetadataMap, procLangs
 	return langFuncs, functionMetadata
 }
 
-func RetrieveTypes(sortables *[]Sortable, metadataMap MetadataMap) ([]Type, MetadataMap) {
+func RetrieveTypes(sortables *[]Sortable, metadataMap MetadataMap) ([]Type, []RangeType, MetadataMap) {
+	rangeTypes := make([]RangeType, 0)
 	gplog.Verbose("Retrieving type information")
 	shells := GetShellTypes(connectionPool)
 	bases := GetBaseTypes(connectionPool)
@@ -197,16 +198,17 @@ func RetrieveTypes(sortables *[]Sortable, metadataMap MetadataMap) ([]Type, Meta
 	domains := GetDomainTypes(connectionPool)
 	types = append(types, domains...)
 	if connectionPool.Version.AtLeast("6") {
-		ranges := GetRangeTypes(connectionPool)
-		types = append(types, ranges...)
+		rangeTypes = GetRangeTypes(connectionPool)
+		*sortables = append(*sortables, convertToSortableSlice(rangeTypes)...)
 	}
 	objectCounts["Types"] = len(types)
+	objectCounts["Types"] += len(rangeTypes)
 	typeMetadata := GetMetadataForObjectType(connectionPool, TYPE_TYPE)
 
 	*sortables = append(*sortables, convertToSortableSlice(types)...)
 	addToMetadataMap(typeMetadata, metadataMap)
 
-	return types, typeMetadata
+	return types, rangeTypes, typeMetadata
 }
 
 func RetrieveConstraints(tables ...Relation) ([]Constraint, MetadataMap) {
@@ -451,9 +453,9 @@ func BackupProceduralLanguages(metadataFile *utils.FileWithByteCount, procLangs 
 	PrintCreateLanguageStatements(metadataFile, globalTOC, procLangs, funcInfoMap, procLangMetadata)
 }
 
-func BackupShellTypes(metadataFile *utils.FileWithByteCount, types []Type) {
+func BackupShellTypes(metadataFile *utils.FileWithByteCount, types []Type, rangeTypes []RangeType) {
 	gplog.Verbose("Writing CREATE TYPE statements for shell types to metadata file")
-	PrintCreateShellTypeStatements(metadataFile, globalTOC, types)
+	PrintCreateShellTypeStatements(metadataFile, globalTOC, types, rangeTypes)
 }
 
 func BackupEnumTypes(metadataFile *utils.FileWithByteCount, typeMetadata MetadataMap) {
