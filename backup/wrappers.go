@@ -187,7 +187,7 @@ func RetrieveFunctions(sortables *[]Sortable, metadataMap MetadataMap, procLangs
 	return langFuncs, functionMetadata
 }
 
-func RetrieveTypes(sortables *[]Sortable, metadataMap MetadataMap) ([]Type, []RangeType, MetadataMap) {
+func RetrieveAndBackupTypes(metadataFile *utils.FileWithByteCount, sortables *[]Sortable, metadataMap MetadataMap) {
 	rangeTypes := make([]RangeType, 0)
 	gplog.Verbose("Retrieving type information")
 	shells := GetShellTypes(connectionPool)
@@ -196,19 +196,23 @@ func RetrieveTypes(sortables *[]Sortable, metadataMap MetadataMap) ([]Type, []Ra
 	composites := GetCompositeTypes(connectionPool)
 	types = append(types, composites...)
 	domains := GetDomainTypes(connectionPool)
-	types = append(types, domains...)
+	*sortables = append(*sortables, convertToSortableSlice(domains)...)
 	if connectionPool.Version.AtLeast("6") {
 		rangeTypes = GetRangeTypes(connectionPool)
 		*sortables = append(*sortables, convertToSortableSlice(rangeTypes)...)
 	}
 	objectCounts["Types"] = len(types)
 	objectCounts["Types"] += len(rangeTypes)
+	objectCounts["Types"] += len(domains)
 	typeMetadata := GetMetadataForObjectType(connectionPool, TYPE_TYPE)
+
+	BackupShellTypes(metadataFile, types, rangeTypes)
+	if connectionPool.Version.AtLeast("5") {
+		BackupEnumTypes(metadataFile, typeMetadata)
+	}
 
 	*sortables = append(*sortables, convertToSortableSlice(types)...)
 	addToMetadataMap(typeMetadata, metadataMap)
-
-	return types, rangeTypes, typeMetadata
 }
 
 func RetrieveConstraints(tables ...Relation) ([]Constraint, MetadataMap) {

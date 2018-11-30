@@ -16,10 +16,6 @@ import (
  * Functions to print to the predata file
  */
 
-/*
- * Because only base types are dependent on functions, we only need to print
- * shell type statements for base types.
- */
 func PrintCreateShellTypeStatements(metadataFile *utils.FileWithByteCount, toc *utils.TOC, types []Type, rangeTypes []RangeType) {
 	metadataFile.MustPrintf("\n\n")
 	for _, typ := range types {
@@ -42,7 +38,7 @@ func PrintCreateShellTypeStatements(metadataFile *utils.FileWithByteCount, toc *
 	}
 }
 
-func PrintCreateDomainStatement(metadataFile *utils.FileWithByteCount, toc *utils.TOC, domain Type, typeMetadata ObjectMetadata, constraints []Constraint) {
+func PrintCreateDomainStatement(metadataFile *utils.FileWithByteCount, toc *utils.TOC, domain Domain, typeMetadata ObjectMetadata, constraints []Constraint) {
 	start := metadataFile.ByteCount
 	metadataFile.MustPrintf("\nCREATE DOMAIN %s AS %s", domain.FQN(), domain.BaseType)
 	if domain.DefaultVal != "" {

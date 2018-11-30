@@ -108,7 +108,6 @@ type Type struct {
 	Category        string `db:"typcategory"`
 	Preferred       bool   `db:"typispreferred"`
 	Delimiter       string `db:"typdelim"`
-	EnumLabels      string
 	BaseType        string
 	NotNull         bool `db:"typnotnull"`
 	Attributes      []Attribute
@@ -130,19 +129,7 @@ func GetTypeMetadataEntry(schema string, name string) (string, utils.MetadataEnt
 }
 
 func (t Type) GetMetadataEntry() (string, utils.MetadataEntry) {
-	objectType := "TYPE"
-	if t.Type == "d" {
-		objectType = "DOMAIN"
-	}
-	return "predata",
-		utils.MetadataEntry{
-			Schema:          t.Schema,
-			Name:            t.Name,
-			ObjectType:      objectType,
-			ReferenceObject: "",
-			StartByte:       0,
-			EndByte:         0,
-		}
+	return GetTypeMetadataEntry(t.Schema, t.Name)
 }
 
 func (t Type) GetUniqueID() UniqueID {
@@ -307,14 +294,43 @@ func getCompositeTypeAttributes(connectionPool *dbconn.DBConn) map[uint32][]Attr
 	return attributeMap
 }
 
-func GetDomainTypes(connectionPool *dbconn.DBConn) []Type {
-	results := make([]Type, 0)
+type Domain struct {
+	Oid        uint32
+	Schema     string
+	Name       string
+	DefaultVal string
+	Collation  string
+	BaseType   string
+	NotNull    bool
+}
+
+func (t Domain) GetMetadataEntry() (string, utils.MetadataEntry) {
+	return "predata",
+		utils.MetadataEntry{
+			Schema:          t.Schema,
+			Name:            t.Name,
+			ObjectType:      "DOMAIN",
+			ReferenceObject: "",
+			StartByte:       0,
+			EndByte:         0,
+		}
+}
+
+func (t Domain) GetUniqueID() UniqueID {
+	return UniqueID{ClassID: PG_TYPE_OID, Oid: t.Oid}
+}
+
+func (t Domain) FQN() string {
+	return utils.MakeFQN(t.Schema, t.Name)
+}
+
+func GetDomainTypes(connectionPool *dbconn.DBConn) []Domain {
+	results := make([]Domain, 0)
 	version4query := fmt.Sprintf(`
 SELECT
 	t.oid,
 	quote_ident(n.nspname) AS schema,
 	quote_ident(t.typname) AS name,
-	t.typtype,
 	coalesce(t.typdefault, '') AS defaultval,
 	format_type(t.typbasetype, t.typtypmod) AS basetype,
 	t.typnotnull
@@ -330,11 +346,10 @@ SELECT
 	t.oid,
 	quote_ident(n.nspname) AS schema,
 	quote_ident(t.typname) AS name,
-	t.typtype,
 	coalesce(t.typdefault, '') AS defaultval,
 	CASE WHEN t.typcollation <> u.typcollation THEN quote_ident(cn.nspname) || '.' || quote_ident(c.collname) ELSE '' END AS collation,
 	format_type(t.typbasetype, t.typtypmod) AS basetype,
-	t.typnotnull
+	t.typnotnull AS notnull
 FROM pg_type t
 JOIN pg_namespace n ON t.typnamespace = n.oid
 LEFT JOIN pg_type u ON (t.typbasetype = u.oid)

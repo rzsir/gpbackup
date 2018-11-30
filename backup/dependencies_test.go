@@ -134,7 +134,7 @@ var _ = Describe("backup/dependencies tests", func() {
 					Arguments: "integer, integer", IdentArgs: "integer, integer", ResultType: "integer", Language: "sql"},
 				backup.Type{Oid: 2, Schema: "public", Name: "base", Type: "b", Input: "typin", Output: "typout", Category: "U"},
 				backup.Type{Oid: 3, Schema: "public", Name: "composite", Type: "c", Attributes: []backup.Attribute{{Name: "foo", Type: "integer"}}, Category: "U"},
-				backup.Type{Oid: 4, Schema: "public", Name: "domain", Type: "d", BaseType: "numeric", Category: "U"},
+				backup.Domain{Oid: 4, Schema: "public", Name: "domain", BaseType: "numeric"},
 				backup.Table{
 					Relation:        backup.Relation{Oid: 5, Schema: "public", Name: "relation"},
 					TableDefinition: backup.TableDefinition{DistPolicy: "DISTRIBUTED RANDOMLY", ColumnDefs: []backup.ColumnDefinition{}},

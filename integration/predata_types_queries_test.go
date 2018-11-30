@@ -200,8 +200,8 @@ var _ = Describe("backup integration tests", func() {
 			Expect(composites).To(BeEmpty())
 		})
 		It("returns a slice for a domain type", func() {
-			domainType := backup.Type{
-				Oid: 1, Type: "d", Schema: "public", Name: "domain1", DefaultVal: "'abc'::bpchar", BaseType: "character(8)", NotNull: false,
+			domainType := backup.Domain{
+				Oid: 1, Schema: "public", Name: "domain1", DefaultVal: "'abc'::bpchar", BaseType: "character(8)", NotNull: false, Collation: "",
 			}
 			testhelper.AssertQueryRuns(connectionPool, "CREATE DOMAIN public.domain1 AS character(8) DEFAULT 'abc'")
 			defer testhelper.AssertQueryRuns(connectionPool, "DROP DOMAIN public.domain1")
@@ -209,14 +209,13 @@ var _ = Describe("backup integration tests", func() {
 			results := backup.GetDomainTypes(connectionPool)
 
 			Expect(results).To(HaveLen(1))
-			structmatcher.ExpectStructsToMatchIncluding(&domainType, &results[0], "Schema", "Name", "Type", "DefaultVal", "BaseType", "NotNull")
+			structmatcher.ExpectStructsToMatchExcluding(&domainType, &results[0], "Oid")
 		})
 		It("returns a slice for a domain type with a collation", func() {
 			testutils.SkipIfBefore6(connectionPool)
-			domainType := backup.Type{
-				Oid: 1, Type: "d", Schema: "public", Name: "domain1", DefaultVal: "'abc'::bpchar", BaseType: "character(8)", NotNull: false,
+			domainType := backup.Domain{
+				Oid: 1, Schema: "public", Name: "domain1", DefaultVal: "'abc'::bpchar", BaseType: "character(8)", NotNull: false, Collation: "public.some_coll",
 			}
-			domainType.Collation = "public.some_coll"
 			testhelper.AssertQueryRuns(connectionPool, "CREATE COLLATION public.some_coll (lc_collate = 'POSIX', lc_ctype = 'POSIX')")
 			defer testhelper.AssertQueryRuns(connectionPool, "DROP COLLATION public.some_coll")
 			testhelper.AssertQueryRuns(connectionPool, "CREATE DOMAIN public.domain1 AS character(8) DEFAULT 'abc' COLLATE public.some_coll")
@@ -225,7 +224,7 @@ var _ = Describe("backup integration tests", func() {
 			results := backup.GetDomainTypes(connectionPool)
 
 			Expect(results).To(HaveLen(1))
-			structmatcher.ExpectStructsToMatchIncluding(&domainType, &results[0], "Schema", "Name", "Type", "DefaultVal", "BaseType", "NotNull")
+			structmatcher.ExpectStructsToMatchExcluding(&domainType, &results[0], "Oid")
 		})
 		It("returns a slice for a type in a specific schema", func() {
 			testhelper.AssertQueryRuns(connectionPool, "CREATE TYPE public.shell_type")

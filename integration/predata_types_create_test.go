@@ -23,7 +23,7 @@ var _ = Describe("backup integration create statement tests", func() {
 			shellType     backup.Type
 			baseType      backup.Type
 			compositeType backup.Type
-			domainType    backup.Type
+			domainType    backup.Domain
 			typeMetadata  backup.ObjectMetadata
 		)
 		BeforeEach(func() {
@@ -38,15 +38,13 @@ var _ = Describe("backup integration create statement tests", func() {
 				Type: "c", Schema: "public", Name: "composite_type",
 				Attributes: atts, Category: "U",
 			}
-			domainType = testutils.DefaultTypeDefinition("d", "domain_type")
-			domainType.BaseType = "character(8)"
-			domainType.DefaultVal = "'abc'::bpchar"
-			domainType.NotNull = true
+			domainType = backup.Domain{
+				Oid: 1, Schema: "public", Name: "domain_type", BaseType: "character(8)", DefaultVal: "'abc'::bpchar", NotNull: true, Collation: ""}
 			typeMetadata = backup.ObjectMetadata{}
 		})
 
 		It("creates shell types for base and shell types only", func() {
-			types := []backup.Type{shellType, baseType, compositeType, domainType}
+			types := []backup.Type{shellType, baseType, compositeType}
 			backup.PrintCreateShellTypeStatements(backupfile, toc, types, []backup.RangeType{})
 
 			testhelper.AssertQueryRuns(connectionPool, buffer.String())

@@ -240,15 +240,9 @@ func backupPredata(metadataFile *utils.FileWithByteCount, tables []Table, tableO
 
 		procLangs := GetProceduralLanguages(connectionPool)
 		langFuncs, functionMetadata := RetrieveFunctions(&sortables, metadataMap, procLangs)
-		types, rangeTypes, typeMetadata := RetrieveTypes(&sortables, metadataMap)
 
 		if len(MustGetFlagStringSlice(utils.INCLUDE_SCHEMA)) == 0 {
 			BackupProceduralLanguages(metadataFile, procLangs, langFuncs, functionMetadata, funcInfoMap)
-		}
-
-		BackupShellTypes(metadataFile, types, rangeTypes)
-		if connectionPool.Version.AtLeast("5") {
-			BackupEnumTypes(metadataFile, typeMetadata)
 		}
 
 		if len(MustGetFlagStringSlice(utils.INCLUDE_SCHEMA)) == 0 &&
