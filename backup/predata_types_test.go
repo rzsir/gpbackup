@@ -17,11 +17,11 @@ var _ = Describe("backup/predata_types tests", func() {
 		toc, backupfile = testutils.InitializeTestTOC(buffer, "predata")
 	})
 	Describe("PrintCreateEnumTypeStatements", func() {
-		enumOne := backup.Type{Oid: 1, Schema: "public", Name: "enum_type", Type: "e", EnumLabels: "'bar',\n\t'baz',\n\t'foo'", Category: "U"}
-		enumTwo := backup.Type{Oid: 1, Schema: "public", Name: "enum_type", Type: "e", EnumLabels: "'bar',\n\t'baz',\n\t'foo'", Category: "U"}
+		enumOne := backup.EnumType{Oid: 1, Schema: "public", Name: "enum_type", EnumLabels: "'bar',\n\t'baz',\n\t'foo'"}
+		enumTwo := backup.EnumType{Oid: 1, Schema: "public", Name: "enum_type", EnumLabels: "'bar',\n\t'baz',\n\t'foo'"}
 
 		It("prints an enum type with multiple attributes", func() {
-			backup.PrintCreateEnumTypeStatements(backupfile, toc, []backup.Type{enumOne}, typeMetadataMap)
+			backup.PrintCreateEnumTypeStatements(backupfile, toc, []backup.EnumType{enumOne}, typeMetadataMap)
 			testutils.ExpectEntry(toc.PredataEntries, 0, "public", "", "enum_type", "TYPE")
 			testutils.AssertBufferContents(toc.PredataEntries, buffer, `CREATE TYPE public.enum_type AS ENUM (
 	'bar',
@@ -31,7 +31,7 @@ var _ = Describe("backup/predata_types tests", func() {
 		})
 		It("prints an enum type with comment, security label, and owner", func() {
 			typeMetadataMap = testutils.DefaultMetadataMap("TYPE", false, true, true, true)
-			backup.PrintCreateEnumTypeStatements(backupfile, toc, []backup.Type{enumTwo}, typeMetadataMap)
+			backup.PrintCreateEnumTypeStatements(backupfile, toc, []backup.EnumType{enumTwo}, typeMetadataMap)
 			expectedStatements := []string{`CREATE TYPE public.enum_type AS ENUM (
 	'bar',
 	'baz',

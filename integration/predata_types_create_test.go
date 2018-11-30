@@ -23,9 +23,7 @@ var _ = Describe("backup integration create statement tests", func() {
 			shellType     backup.Type
 			baseType      backup.Type
 			compositeType backup.Type
-			enumType      backup.Type
 			domainType    backup.Type
-			types         []backup.Type
 			typeMetadata  backup.ObjectMetadata
 		)
 		BeforeEach(func() {
@@ -40,19 +38,15 @@ var _ = Describe("backup integration create statement tests", func() {
 				Type: "c", Schema: "public", Name: "composite_type",
 				Attributes: atts, Category: "U",
 			}
-			enumType = backup.Type{Type: "e", Schema: "public", Name: "enum_type", EnumLabels: "'enum_labels'", Category: "U"}
 			domainType = testutils.DefaultTypeDefinition("d", "domain_type")
 			domainType.BaseType = "character(8)"
 			domainType.DefaultVal = "'abc'::bpchar"
 			domainType.NotNull = true
-			types = []backup.Type{shellType, baseType, compositeType, domainType}
-			if connectionPool.Version.AtLeast("5") {
-				types = append(types, enumType)
-			}
 			typeMetadata = backup.ObjectMetadata{}
 		})
 
 		It("creates shell types for base and shell types only", func() {
+			types := []backup.Type{shellType, baseType, compositeType, domainType}
 			backup.PrintCreateShellTypeStatements(backupfile, toc, types, []backup.RangeType{})
 
 			testhelper.AssertQueryRuns(connectionPool, buffer.String())
@@ -106,7 +100,8 @@ var _ = Describe("backup integration create statement tests", func() {
 
 		It("creates enum types", func() {
 			testutils.SkipIfBefore5(connectionPool)
-			enums := []backup.Type{enumType}
+			enumType := backup.EnumType{Schema: "public", Name: "enum_type", EnumLabels: "'enum_labels'"}
+			enums := []backup.EnumType{enumType}
 			metadataMap := testutils.DefaultMetadataMap("TYPE", false, true, true, includeSecurityLabels)
 			backup.PrintCreateEnumTypeStatements(backupfile, toc, enums, metadataMap)
 
@@ -116,7 +111,7 @@ var _ = Describe("backup integration create statement tests", func() {
 			resultTypes := backup.GetEnumTypes(connectionPool)
 
 			Expect(resultTypes).To(HaveLen(1))
-			structmatcher.ExpectStructsToMatchIncluding(&resultTypes[0], &enumType, "Type", "Schema", "Name", "Comment", "Owner", "EnumLabels")
+			structmatcher.ExpectStructsToMatchExcluding(&resultTypes[0], &enumType, "Oid")
 		})
 
 		It("creates base types", func() {

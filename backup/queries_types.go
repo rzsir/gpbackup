@@ -344,7 +344,34 @@ ORDER BY n.nspname, t.typname;`, SchemaFilterClause("n"), ExtensionFilterClause(
 	return results
 }
 
-func GetEnumTypes(connectionPool *dbconn.DBConn) []Type {
+type EnumType struct {
+	Oid        uint32
+	Schema     string
+	Name       string
+	EnumLabels string
+}
+
+func (t EnumType) GetMetadataEntry(start uint64, end uint64) (string, utils.MetadataEntry) {
+	return "predata",
+		utils.MetadataEntry{
+			Schema:          t.Schema,
+			Name:            t.Name,
+			ObjectType:      "TYPE",
+			ReferenceObject: "",
+			StartByte:       start,
+			EndByte:         end,
+		}
+}
+
+func (t EnumType) GetUniqueID() UniqueID {
+	return UniqueID{ClassID: PG_TYPE_OID, Oid: t.Oid}
+}
+
+func (t EnumType) FQN() string {
+	return utils.MakeFQN(t.Schema, t.Name)
+}
+
+func GetEnumTypes(connectionPool *dbconn.DBConn) []EnumType {
 	enumSortClause := "ORDER BY e.enumsortorder"
 	if connectionPool.Version.Is("5") {
 		enumSortClause = "ORDER BY e.oid"
@@ -354,7 +381,6 @@ SELECT
 	t.oid,
 	quote_ident(n.nspname) AS schema,
 	quote_ident(t.typname) AS name,
-	t.typtype,
 	enumlabels
 FROM pg_type t
 LEFT JOIN pg_namespace n ON t.typnamespace = n.oid
@@ -366,7 +392,7 @@ AND t.typtype = 'e'
 AND %s
 ORDER BY n.nspname, t.typname;`, enumSortClause, SchemaFilterClause("n"), ExtensionFilterClause("t"))
 
-	results := make([]Type, 0)
+	results := make([]EnumType, 0)
 	err := connectionPool.Select(&results, query)
 	gplog.FatalOnError(err)
 	return results

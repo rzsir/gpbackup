@@ -18,8 +18,8 @@ var _ = Describe("backup integration tests", func() {
 			baseTypeDefault backup.Type
 			baseTypeCustom  backup.Type
 			compositeType   backup.Type
-			enumType        backup.Type
-			enumType2       backup.Type
+			enumType        backup.EnumType
+			enumType2       backup.EnumType
 		)
 		BeforeEach(func() {
 			shellType = backup.Type{Type: "p", Schema: "public", Name: "shell_type"}
@@ -41,11 +41,11 @@ var _ = Describe("backup integration tests", func() {
 					{Name: "name1", Type: "character(8)"},
 				},
 			}
-			enumType = backup.Type{
-				Oid: 1, Type: "e", Schema: "public", Name: "enum_type", EnumLabels: "'label1',\n\t'label2',\n\t'label3'",
+			enumType = backup.EnumType{
+				Oid: 1, Schema: "public", Name: "enum_type", EnumLabels: "'label1',\n\t'label2',\n\t'label3'",
 			}
-			enumType2 = backup.Type{
-				Oid: 1, Type: "e", Schema: "public", Name: "enum_type2", EnumLabels: "'label3',\n\t'label2',\n\t'label1'",
+			enumType2 = backup.EnumType{
+				Oid: 1, Schema: "public", Name: "enum_type2", EnumLabels: "'label3',\n\t'label2',\n\t'label1'",
 			}
 		})
 		It("returns a slice for a shell type", func() {

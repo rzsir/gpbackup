@@ -169,7 +169,7 @@ func PrintPostCreateCompositeTypeStatement(metadataFile *utils.FileWithByteCount
 	PrintStatements(metadataFile, toc, composite, statements)
 }
 
-func PrintCreateEnumTypeStatements(metadataFile *utils.FileWithByteCount, toc *utils.TOC, enums []Type, typeMetadata MetadataMap) {
+func PrintCreateEnumTypeStatements(metadataFile *utils.FileWithByteCount, toc *utils.TOC, enums []EnumType, typeMetadata MetadataMap) {
 	for _, enum := range enums {
 		start := metadataFile.ByteCount
 		metadataFile.MustPrintf("\n\nCREATE TYPE %s AS ENUM (\n\t%s\n);\n", enum.FQN(), enum.EnumLabels)
