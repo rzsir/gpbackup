@@ -34,10 +34,11 @@ func PrintCreateShellTypeStatements(metadataFile *utils.FileWithByteCount, toc *
 	}
 
 	for _, rangeTyp := range rangeTypes {
+		start := metadataFile.ByteCount
 		typeFQN := utils.MakeFQN(rangeTyp.Schema, rangeTyp.Name)
 		metadataFile.MustPrintf("CREATE TYPE %s;\n", typeFQN)
-		toc.AddMetadataEntry(rangeTyp, start, metadataFile.ByteCount)
-		start = metadataFile.ByteCount
+		section, entry := rangeTyp.GetMetadataEntry()
+		toc.AddMetadataEntry(section, entry, start, metadataFile.ByteCount)
 	}
 }
 

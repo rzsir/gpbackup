@@ -117,6 +117,18 @@ type Type struct {
 	Collation       string
 }
 
+func GetTypeMetadataEntry(schema string, name string) (string, utils.MetadataEntry) {
+	return "predata",
+		utils.MetadataEntry{
+			Schema:          schema,
+			Name:            name,
+			ObjectType:      "TYPE",
+			ReferenceObject: "",
+			StartByte:       0,
+			EndByte:         0,
+		}
+}
+
 func (t Type) GetMetadataEntry() (string, utils.MetadataEntry) {
 	objectType := "TYPE"
 	if t.Type == "d" {
@@ -351,16 +363,8 @@ type EnumType struct {
 	EnumLabels string
 }
 
-func (t EnumType) GetMetadataEntry(start uint64, end uint64) (string, utils.MetadataEntry) {
-	return "predata",
-		utils.MetadataEntry{
-			Schema:          t.Schema,
-			Name:            t.Name,
-			ObjectType:      "TYPE",
-			ReferenceObject: "",
-			StartByte:       start,
-			EndByte:         end,
-		}
+func (t EnumType) GetMetadataEntry() (string, utils.MetadataEntry) {
+	return GetTypeMetadataEntry(t.Schema, t.Name)
 }
 
 func (t EnumType) GetUniqueID() UniqueID {
@@ -409,16 +413,8 @@ type RangeType struct {
 	SubTypeDiff    string
 }
 
-func (t RangeType) GetMetadataEntry(start uint64, end uint64) (string, utils.MetadataEntry) {
-	return "predata",
-		utils.MetadataEntry{
-			Schema:          t.Schema,
-			Name:            t.Name,
-			ObjectType:      "TYPE",
-			ReferenceObject: "",
-			StartByte:       start,
-			EndByte:         end,
-		}
+func (t RangeType) GetMetadataEntry() (string, utils.MetadataEntry) {
+	return GetTypeMetadataEntry(t.Schema, t.Name)
 }
 
 func (t RangeType) GetUniqueID() UniqueID {
